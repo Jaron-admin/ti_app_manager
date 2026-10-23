@@ -35,6 +35,29 @@ class RoutingProcessRunner implements ProcessRunner {
   }
 }
 
+/// Answers from a queue per winget subcommand, so a batch can fail after the
+/// first read succeeded. The last answer stays in place.
+class SequencedProcessRunner implements ProcessRunner {
+  SequencedProcessRunner(Map<String, List<CommandResult>> byCommand)
+    : _byCommand = {
+        for (final entry in byCommand.entries) entry.key: [...entry.value],
+      };
+
+  final Map<String, List<CommandResult>> _byCommand;
+  final List<List<String>> calls = [];
+
+  @override
+  Future<CommandResult> run(List<String> command, {Duration? timeout}) async {
+    calls.add(command);
+    final verb = command.length > 1 ? command[1] : command[0];
+    final queue = _byCommand[verb];
+    if (queue == null || queue.isEmpty) {
+      return const CommandResult(exitCode: 0, stdoutText: '');
+    }
+    return queue.length == 1 ? queue.first : queue.removeAt(0);
+  }
+}
+
 class PendingProcessRunner implements ProcessRunner {
   final Completer<CommandResult> completion = Completer<CommandResult>();
 
@@ -57,4 +80,12 @@ Name                Id              Version     Match         Source
 7-Zip               7zip.7zip       26.05       Moniker: 7zip winget
 NanaZip             M2Team.NanaZip  7.0.1873.0  Tag: 7zip     winget
 7zip tool           XP8C87R6J42SKH  Unknown                   msstore
+''';
+
+const upgradeTable = r'''
+Name                        Id                      Version          Available        Source
+---------------------------------------------------------------------------------------------
+7-Zip 26.03 (x64)           7zip.7zip               26.03            26.05            winget
+LocalSend 版本 1.17.0       LocalSend.LocalSend     1.17.0           1.18.2           winget
+PowerToys (Preview) x64     XP89DCGQ3K6VLD          0.101.2362.0     0.102.2933.0     msstore
 ''';

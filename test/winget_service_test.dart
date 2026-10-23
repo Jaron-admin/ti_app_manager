@@ -104,6 +104,35 @@ Name                Id            Version   Available  Source
       ]);
     });
 
+    test('upgrades one package from its own source', () async {
+      final runner = _FakeRunner();
+      final service = WingetService(runner: runner);
+
+      await service.update(
+        const UpdateEntry(
+          name: '7-Zip 26.03 (x64)',
+          id: '7zip.7zip',
+          currentVersion: '26.03',
+          availableVersion: '26.05',
+          source: 'msstore',
+        ),
+      );
+
+      expect(runner.calls.single, [
+        'winget',
+        'upgrade',
+        '--id',
+        '7zip.7zip',
+        '--exact',
+        '--source',
+        'msstore',
+        '--silent',
+        '--accept-package-agreements',
+        '--accept-source-agreements',
+        '--disable-interactivity',
+      ]);
+    });
+
     test('reports the last winget line when a run fails', () async {
       final runner = _FakeRunner(
         const CommandResult(

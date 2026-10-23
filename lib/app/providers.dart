@@ -18,6 +18,11 @@ final installedAppsProvider = FutureProvider<List<InstalledApp>>(
   retry: (_, _) => null,
 );
 
+final availableUpdatesProvider = FutureProvider<List<UpdateEntry>>(
+  (ref) => ref.watch(wingetProvider).availableUpdates(),
+  retry: (_, _) => null,
+);
+
 final discoverSearchProvider =
     FutureProvider.family<List<SearchResult>, String>(
       (ref, query) => ref.watch(wingetProvider).search(query),

@@ -37,19 +37,24 @@ class WingetService {
   Future<List<SearchResult>> search(String query) async =>
       parseSearchResults(await _read(['search', query]));
 
-  Future<void> install(SearchResult target) async {
-    await _run([
-      _executable,
-      'install',
-      target.id,
-      '--exact',
-      '--source',
-      target.source,
-      '--silent',
-      '--accept-package-agreements',
-      ..._quiet,
-    ]);
+  Future<void> update(UpdateEntry target) async {
+    await _run(_write(['upgrade', '--id', target.id], target.source));
   }
+
+  Future<void> install(SearchResult target) async {
+    await _run(_write(['install', target.id], target.source));
+  }
+
+  List<String> _write(List<String> arguments, String source) => [
+    _executable,
+    ...arguments,
+    '--exact',
+    '--source',
+    source,
+    '--silent',
+    '--accept-package-agreements',
+    ..._quiet,
+  ];
 
   Future<String?> version() async {
     try {
