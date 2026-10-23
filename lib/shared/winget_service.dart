@@ -22,14 +22,34 @@ class WingetService {
   final ProcessRunner _runner;
   final String _executable;
 
+  static const _quiet = [
+    '--accept-source-agreements',
+    // A prompt winget would show a human would hang us forever.
+    '--disable-interactivity',
+  ];
+
   Future<List<InstalledApp>> installedApps() async =>
-      parseInstalledList(await _table(['list']));
+      parseInstalledList(await _read(['list']));
 
   Future<List<UpdateEntry>> availableUpdates() async =>
-      parseUpgradeList(await _table(['upgrade']));
+      parseUpgradeList(await _read(['upgrade']));
 
   Future<List<SearchResult>> search(String query) async =>
-      parseSearchResults(await _table(['search', query]));
+      parseSearchResults(await _read(['search', query]));
+
+  Future<void> install(SearchResult target) async {
+    await _run([
+      _executable,
+      'install',
+      target.id,
+      '--exact',
+      '--source',
+      target.source,
+      '--silent',
+      '--accept-package-agreements',
+      ..._quiet,
+    ]);
+  }
 
   Future<String?> version() async {
     try {
@@ -40,20 +60,30 @@ class WingetService {
     }
   }
 
-  Future<String> _table(List<String> arguments) async {
-    final result = await _runner.run([
-      _executable,
-      ...arguments,
-      '--accept-source-agreements',
-      // A prompt winget would show a human would hang us forever.
-      '--disable-interactivity',
-    ]);
-    if (!result.isSuccess) {
-      final message = result.stderrText.trim().isEmpty
-          ? result.stdoutText.trim()
-          : result.stderrText.trim();
-      throw WingetException(message, exitCode: result.exitCode);
-    }
+  Future<String> _read(List<String> arguments) async {
+    final result = await _run([_executable, ...arguments, ..._quiet]);
     return result.stdoutText;
   }
+
+  Future<CommandResult> _run(List<String> command) async {
+    final result = await _runner.run(command);
+    if (!result.isSuccess) {
+      throw WingetException(_failure(result), exitCode: result.exitCode);
+    }
+    return result;
+  }
+}
+
+/// winget fills stdout with progress lines, so the last written line is the one
+/// that explains what happened.
+String _failure(CommandResult result) {
+  for (final text in [result.stderrText, result.stdoutText]) {
+    final lines = text
+        .split(RegExp(r'[\r\n]+'))
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList();
+    if (lines.isNotEmpty) return lines.last;
+  }
+  return 'winget 没有给出原因';
 }

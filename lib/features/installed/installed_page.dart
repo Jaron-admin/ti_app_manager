@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
+import '../../design/components/ti_busy.dart';
 import '../../design/components/ti_empty.dart';
 import '../../design/components/ti_page.dart';
 import '../../design/tokens.dart';
@@ -64,7 +65,7 @@ class _InstalledPageState extends ConsumerState<InstalledPage> {
         ),
       );
     }
-    return const _Busy(
+    return const TiBusy(
       title: '正在读取',
       message: 'winget 正在列出这台电脑上的软件，首次约需 20 秒。',
     );
@@ -99,7 +100,7 @@ class _InstalledPageState extends ConsumerState<InstalledPage> {
     return ListView.separated(
       key: const Key('installed-list'),
       itemCount: visible.length,
-      separatorBuilder: (_, _) => const _RowDivider(),
+      separatorBuilder: (_, _) => const Divider(height: 1),
       itemBuilder: (context, index) => _AppRow(app: visible[index]),
     );
   }
@@ -229,44 +230,6 @@ class _AppRow extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _RowDivider extends StatelessWidget {
-  const _RowDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(height: 1, color: Theme.of(context).dividerColor);
-  }
-}
-
-class _Busy extends StatelessWidget {
-  const _Busy({required this.title, required this.message});
-
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(
-            width: TiSpace.block,
-            height: TiSpace.block,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-          const SizedBox(height: TiSpace.card),
-          Text(title, style: theme.textTheme.titleMedium),
-          const SizedBox(height: TiSpace.gap),
-          Text(message, style: theme.textTheme.bodySmall),
-        ],
       ),
     );
   }

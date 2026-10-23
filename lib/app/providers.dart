@@ -17,3 +17,9 @@ final installedAppsProvider = FutureProvider<List<InstalledApp>>(
   // A winget failure is deterministic, so never respawn the process on a timer.
   retry: (_, _) => null,
 );
+
+final discoverSearchProvider =
+    FutureProvider.family<List<SearchResult>, String>(
+      (ref, query) => ref.watch(wingetProvider).search(query),
+      retry: (_, _) => null,
+    );

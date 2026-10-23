@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ti_app_manager/shared/models.dart';
 import 'package:ti_app_manager/shared/process_runner.dart';
 import 'package:ti_app_manager/shared/winget_service.dart';
 
@@ -74,6 +75,55 @@ Name                Id            Version   Available  Source
         '--accept-source-agreements',
         '--disable-interactivity',
       ]);
+    });
+
+    test('installs a search hit from its own source', () async {
+      final runner = _FakeRunner();
+      final service = WingetService(runner: runner);
+
+      await service.install(
+        const SearchResult(
+          name: '7-Zip',
+          id: '7zip.7zip',
+          version: '26.05',
+          source: 'winget',
+        ),
+      );
+
+      expect(runner.calls.single, [
+        'winget',
+        'install',
+        '7zip.7zip',
+        '--exact',
+        '--source',
+        'winget',
+        '--silent',
+        '--accept-package-agreements',
+        '--accept-source-agreements',
+        '--disable-interactivity',
+      ]);
+    });
+
+    test('reports the last winget line when a run fails', () async {
+      final runner = _FakeRunner(
+        const CommandResult(
+          exitCode: -1978335193,
+          stdoutText:
+              'Found 7-Zip\nNo new packages are available to install.\n',
+        ),
+      );
+      final service = WingetService(runner: runner);
+
+      await expectLater(
+        service.installedApps(),
+        throwsA(
+          isA<WingetException>().having(
+            (error) => error.message,
+            'message',
+            'No new packages are available to install.',
+          ),
+        ),
+      );
     });
 
     test('reads the installed engine version', () async {
