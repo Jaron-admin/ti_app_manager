@@ -26,6 +26,9 @@ class SystemProcessRunner implements ProcessRunner {
   @override
   Future<CommandResult> run(List<String> command, {Duration? timeout}) async {
     final process = await Process.start(command.first, command.sublist(1));
+    // A console tool that reads the keyboard would otherwise wait forever on a
+    // pipe nobody writes to.
+    await process.stdin.close();
     final collected = Future.wait([
       _drain(process.stdout),
       _drain(process.stderr),

@@ -37,6 +37,7 @@ Name                Id            Version   Available  Source
         'winget',
         'list',
         '--accept-source-agreements',
+        '--disable-interactivity',
       ]);
       expect(apps.single.id, '7zip.7zip');
       expect(apps.single.availableVersion, '26.05');
@@ -54,6 +55,7 @@ Name                Id            Version   Available  Source
         'winget',
         'upgrade',
         '--accept-source-agreements',
+        '--disable-interactivity',
       ]);
       expect(updates.single.currentVersion, '26.03');
       expect(updates.single.availableVersion, '26.05');
@@ -70,6 +72,7 @@ Name                Id            Version   Available  Source
         'search',
         'visual c++',
         '--accept-source-agreements',
+        '--disable-interactivity',
       ]);
     });
 

@@ -45,6 +45,8 @@ class WingetService {
       _executable,
       ...arguments,
       '--accept-source-agreements',
+      // A prompt winget would show a human would hang us forever.
+      '--disable-interactivity',
     ]);
     if (!result.isSuccess) {
       final message = result.stderrText.trim().isEmpty
