@@ -20,18 +20,24 @@ class FakeProcessRunner implements ProcessRunner {
   }
 }
 
-/// Answers per winget subcommand so a page can search, install and reload.
+/// Answers per command so a page can search, install and reload. `route` picks
+/// the key, because the uninstall flow talks to winget and to powershell.
 class RoutingProcessRunner implements ProcessRunner {
-  RoutingProcessRunner(this.byCommand);
+  RoutingProcessRunner(this.byCommand, {String Function(List<String>)? route})
+    : _route = route ?? _wingetVerb;
 
   final Map<String, CommandResult> byCommand;
+  final String Function(List<String> command) _route;
   final List<List<String>> calls = [];
+
+  static String _wingetVerb(List<String> command) =>
+      command.length > 1 ? command[1] : command[0];
 
   @override
   Future<CommandResult> run(List<String> command, {Duration? timeout}) async {
     calls.add(command);
-    final verb = command.length > 1 ? command[1] : command[0];
-    return byCommand[verb] ?? const CommandResult(exitCode: 0, stdoutText: '');
+    return byCommand[_route(command)] ??
+        const CommandResult(exitCode: 0, stdoutText: '');
   }
 }
 
@@ -89,3 +95,13 @@ Name                        Id                      Version          Available  
 LocalSend 版本 1.17.0       LocalSend.LocalSend     1.17.0           1.18.2           winget
 PowerToys (Preview) x64     XP89DCGQ3K6VLD          0.101.2362.0     0.102.2933.0     msstore
 ''';
+
+/// What powershell answers for a key that registers a silent uninstaller: the
+/// quiet string, a tab, then the interactive one.
+const registryLine =
+    '"D:\\App\\AbleHorse\\Uninstall.exe" /S'
+    '\t'
+    '"D:\\App\\AbleHorse\\Uninstall.exe"';
+
+/// A key that exists but never registered an uninstaller at all.
+const registryNothing = '\t';

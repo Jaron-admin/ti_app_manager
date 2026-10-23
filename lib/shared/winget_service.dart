@@ -41,6 +41,17 @@ class WingetService {
     await _run(_write(['upgrade', '--id', target.id], target.source));
   }
 
+  /// Only worth offering when winget recorded a source: an app it never
+  /// tracked cannot be uninstalled by id.
+  Future<void> uninstall(InstalledApp target) async {
+    await _run(uninstallCommand(target));
+  }
+
+  /// The dialog shows these arguments before anything runs, so the preview and
+  /// the command cannot drift apart.
+  List<String> uninstallCommand(InstalledApp target) =>
+      _write(['uninstall', '--id', target.id], target.source);
+
   Future<void> install(SearchResult target) async {
     await _run(_write(['install', target.id], target.source));
   }

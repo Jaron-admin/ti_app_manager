@@ -7,6 +7,7 @@ import '../../design/components/ti_empty.dart';
 import '../../design/components/ti_page.dart';
 import '../../design/tokens.dart';
 import '../../shared/models.dart';
+import 'uninstall_action.dart';
 
 class InstalledPage extends ConsumerStatefulWidget {
   const InstalledPage({super.key});
@@ -228,6 +229,8 @@ class _AppRow extends StatelessWidget {
                   ),
               ],
             ),
+            const SizedBox(width: TiSpace.gap),
+            UninstallAction(app: app),
           ],
         ),
       ),

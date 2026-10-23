@@ -133,6 +133,34 @@ Name                Id            Version   Available  Source
       ]);
     });
 
+    test('uninstalls only from a source winget knows about', () async {
+      final runner = _FakeRunner();
+      final service = WingetService(runner: runner);
+
+      await service.uninstall(
+        const InstalledApp(
+          name: '7-Zip 26.03 (x64)',
+          id: '7zip.7zip',
+          version: '26.03',
+          source: 'winget',
+        ),
+      );
+
+      expect(runner.calls.single, [
+        'winget',
+        'uninstall',
+        '--id',
+        '7zip.7zip',
+        '--exact',
+        '--source',
+        'winget',
+        '--silent',
+        '--accept-package-agreements',
+        '--accept-source-agreements',
+        '--disable-interactivity',
+      ]);
+    });
+
     test('reports the last winget line when a run fails', () async {
       final runner = _FakeRunner(
         const CommandResult(
