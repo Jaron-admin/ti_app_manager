@@ -1,0 +1,25 @@
+Name                                                         Id                           Version        Available           Source
+------------------------------------------------------------------------------------------------------------------------------------
+7-Zip 26.03 (x64)                                            7zip.7zip                    26.03          26.05               winget
+Apifox 2.8.47                                                Ruihu.Apifox                 2.8.47         2.8.51              winget
+App Installer                                                Microsoft.AppInstaller       1.29.379.0     1.29.380            winget
+ASIO4ALL                                                     MichaelTippach.ASIO4ALL      2.21           2.22                winget
+Blender                                                      BlenderFoundation.Blender    5.2.2          5.2.3               winget
+Claude                                                       Anthropic.Claude             2.31226.0.0    2.42304.2           winget
+Comfy Desktop 1.1.6                                          Comfy.ComfyUI-Desktop        1.1.6          1.1.8               winget
+Coze 1.1.43                                                  ByteDance.Coze               1.1.43         1.1.46              winget
+FFmpeg                                                       Gyan.FFmpeg                  9.0.1          9.0.2               winget
+GitHub CLI                                                   GitHub.cli                   2.102.0        2.103.0             winget
+Grok Bot 0.75.0                                              xAI.GrokBot                  0.75.0         0.75.3              winget
+Kimi                                                         MoonshotAI.Kimi              3.2.10         3.2.18              winget
+LocalSend 版本 1.17.0                                        LocalSend.LocalSend          1.17.0         1.18.2              winget
+Microsoft Edge                                               Microsoft.Edge               155.0.4283.62  156.0.4314.42       winget
+Microsoft Teams                                              Microsoft.Teams              1.0.0.0        26198.304.4946.9672 winget
+Microsoft Visual C++ v14 Redistributable (x86) - 14.50.35719 Microsoft.VCRedist.2015+.x86 14.50.35719.0  14.51.36247.0       winget
+Node.js                                                      OpenJS.NodeJS.LTS            24.21.0        24.22.1             winget
+Ollama version 0.35.1                                        Ollama.Ollama                0.35.1         0.40.9              winget
+Outlook for Windows                                          Microsoft.Outlook            1.2026.602.400 1.2026.812.100      winget
+PawnIO                                                       namazso.PawnIO               2.1.0.0        2.2.0               winget
+PowerToys (Preview) x64                                      XP89DCGQ3K6VLD               0.101.2362.0   0.102.2933.0        msstore
+Python Launcher                                              Python.Launcher              < 3.14.7       3.14.7              winget
+Qoder 0.4.9                                                  Alibaba.Qoder                0.4.9          1.106.3             winget

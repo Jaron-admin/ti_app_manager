@@ -1,0 +1,25 @@
+Name                                                         Id                                                                                      Version            Available           Source
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3x-ui                                                        ARP\User\X64\0257f8863d4ebf4ebf2d5c0a828395a9                                           1.0                                    
+7-Zip 26.03 (x64)                                            7zip.7zip                                                                               26.03              26.05               winget
+AbleHorse                                                    ARP\Machine\X64\AbleHorse                                                               5.0.3.7                                
+AdoptOpenJDK JDK with Hotspot 8u292-b10 (x64)                AdoptOpenJDK.OpenJDK.8                                                                  8.0.292.10                             winget
+AMD Install Manager                                          ARP\Machine\X64\{547DB986-CAD5-49AA-A684-E1600CADA4D7}                                  26.10.26272.1728                       
+AMD Radeon Software                                          MSIX\AdvancedMicroDevicesInc-RSXCM_22.10.0.0_x64__v2es6h43hjn86                         22.10.0.0                              
+AMD Software                                                 ARP\Machine\X64\AMD Catalyst Install Manager                                            26.8.1                                 
+Apifox 2.8.47                                                Ruihu.Apifox                                                                            2.8.47             2.8.51              winget
+App Installer                                                Microsoft.AppInstaller                                                                  1.29.379.0         1.29.380            winget
+Apple Mobile Device Support                                  Apple.AppleMobileDeviceSupport                                                          20.0.0.35                              winget
+Apple Music                                                  MSIX\AppleInc.AppleMusicWin_1.1540.23042.0_x64__nzyj5cx40ttqa                           1.1540.23042.0                         
+ASIO4ALL                                                     MichaelTippach.ASIO4ALL                                                                 2.21               2.22                winget
+AV1 Video Extension                                          MSIX\Microsoft.AV1VideoExtension_2.0.35.0_x64__8wekyb3d8bbwe                            2.0.35.0                               
+AVC 编码器视频扩展                                           MSIX\Microsoft.AVCEncoderVideoExtension_1.1.47.0_x64__8wekyb3d8bbwe                     1.1.47.0                               
+Blender                                                      BlenderFoundation.Blender                                                               5.2.2              5.2.3               winget
+BongoCat                                                     ayangweb.BongoCat                                                                       2.2.0                                  winget
+ChatGPT                                                      MSIX\OpenAI.Codex_26.1016.8622.0_x64__2p2nqsd0c76g0                                     26.1016.8622.0                         
+Clash Verge                                                  ClashVergeRev.ClashVergeRev                                                             2.5.8                                  winget
+Claude                                                       Anthropic.Claude                                                                        2.31226.0.0        2.42304.2           winget
+CodeBuddy CN (User)                                          Tencent.CodeBuddy.CN                                                                    1.106.1                                winget
+Comfy Desktop 1.1.6                                          Comfy.ComfyUI-Desktop                                                                   1.1.6              1.1.8               winget
+coolapk-desktop                                              ARP\User\X64\coolapk-desktop                                                            1.30.0                                 
+Coze 1.1.43                                                  ByteDance.Coze                                                                          1.1.43             1.1.46              winget
