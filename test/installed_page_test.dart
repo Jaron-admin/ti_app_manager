@@ -3,21 +3,30 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ti_app_manager/app/app.dart';
 import 'package:ti_app_manager/app/providers.dart';
+import 'package:ti_app_manager/shared/models.dart';
 import 'package:ti_app_manager/shared/process_runner.dart';
+import 'package:ti_app_manager/shared/snapshot_store.dart';
 
 import 'support/fake_process_runner.dart';
+import 'support/fake_snapshot_store.dart';
 
 void main() {
   Future<void> pumpInstalled(
     WidgetTester tester,
     ProcessRunner runner, {
+    MemoryInstalledSnapshotStore? store,
     bool settle = true,
   }) async {
     await tester.binding.setSurfaceSize(const Size(1280, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [processRunnerProvider.overrideWithValue(runner)],
+        overrides: [
+          processRunnerProvider.overrideWithValue(runner),
+          snapshotStoreProvider.overrideWithValue(
+            store ?? MemoryInstalledSnapshotStore(),
+          ),
+        ],
         child: const TiApp(),
       ),
     );
@@ -78,6 +87,90 @@ void main() {
 
     expect(find.byKey(const Key('installed-list')), findsOneWidget);
     expect(find.text('正在读取'), findsNothing);
+  });
+
+  testWidgets('shows the last read rows while winget works', (tester) async {
+    final store = MemoryInstalledSnapshotStore(
+      InstalledSnapshot(
+        capturedAt: DateTime(2026, 10, 23, 9, 5),
+        apps: const [
+          InstalledApp(
+            name: 'Blender',
+            id: 'BlenderFoundation.Blender',
+            version: '5.2.2',
+            source: 'winget',
+          ),
+        ],
+      ),
+    );
+    await pumpInstalled(
+      tester,
+      PendingProcessRunner(),
+      store: store,
+      settle: false,
+    );
+
+    expect(find.text('Blender'), findsOneWidget);
+    expect(find.text('正在读取'), findsNothing);
+    expect(find.text('先显示 2026-10-23 09:05 的读取结果，正在重新核对'), findsOneWidget);
+
+    // The rows came from the cache, so saying "this computer has 1 app" would
+    // be a claim about a count winget has not confirmed yet.
+    expect(find.text('这台电脑上的软件'), findsOneWidget);
+  });
+
+  testWidgets('keeps the cached rows when winget then fails', (tester) async {
+    final store = MemoryInstalledSnapshotStore(
+      InstalledSnapshot(
+        capturedAt: DateTime(2026, 10, 23, 9, 5),
+        apps: const [
+          InstalledApp(
+            name: 'Blender',
+            id: 'BlenderFoundation.Blender',
+            version: '5.2.2',
+            source: 'winget',
+          ),
+        ],
+      ),
+    );
+    await pumpInstalled(
+      tester,
+      FakeProcessRunner(
+        const CommandResult(
+          exitCode: 1,
+          stdoutText: '',
+          stderrText: 'The term source could not be found.',
+        ),
+      ),
+      store: store,
+    );
+
+    expect(find.text('Blender'), findsOneWidget);
+    expect(
+      find.textContaining('The term source could not be found.'),
+      findsOneWidget,
+    );
+    expect(find.text('先显示 2026-10-23 09:05 的读取结果，这次核对失败'), findsOneWidget);
+    // Refresh is the recovery entry, and it is clickable again once the read ended.
+    expect(
+      tester
+          .widget<IconButton>(find.byKey(const Key('installed-refresh')))
+          .onPressed,
+      isNotNull,
+    );
+  });
+
+  testWidgets('saves the rows a successful read returned', (tester) async {
+    final store = MemoryInstalledSnapshotStore();
+    await pumpInstalled(tester, FakeProcessRunner(readTable), store: store);
+
+    expect(store.snapshot?.apps.map((app) => app.id), [
+      '7zip.7zip',
+      'BlenderFoundation.Blender',
+      r'ARP\Machine\X64\AbleHorse',
+    ]);
+    expect(find.textContaining('先显示'), findsNothing);
+    expect(find.text('这台电脑上的 3 个软件'), findsOneWidget);
   });
 
   testWidgets('offers a retry when winget fails', (tester) async {

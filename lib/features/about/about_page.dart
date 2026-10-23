@@ -35,6 +35,10 @@ class AboutPage extends StatelessWidget {
                         value: 'BCUninstaller（Apache 2.0）',
                       ),
                       _InfoRow(label: '数据处理', value: '全部在本机完成，不上传任何信息'),
+                      _InfoRow(
+                        label: '界面字体',
+                        value: 'Inter 4.1（SIL Open Font License 1.1）',
+                      ),
                     ],
                   ),
                 ),

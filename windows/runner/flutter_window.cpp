@@ -4,6 +4,13 @@
 
 #include "flutter/generated_plugin_registrant.h"
 
+namespace {
+// The sidebar costs 240 logical px and a row needs room for its name, version
+// and uninstall button, so a smaller window only produces clipped text.
+constexpr LONG kMinTrackedWidth = 960;
+constexpr LONG kMinTrackedHeight = 600;
+}  // namespace
+
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
 
@@ -65,6 +72,15 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
     case WM_FONTCHANGE:
       flutter_controller_->engine()->ReloadSystemFonts();
       break;
+    case WM_GETMINMAXINFO: {
+      auto limits = reinterpret_cast<MINMAXINFO*>(lparam);
+      // ptMinTrackSize counts physical pixels while the layout is written in
+      // logical ones, so the floor has to follow the window's scale.
+      const UINT dpi = GetDpiForWindow(hwnd);
+      limits->ptMinTrackSize.x = MulDiv(kMinTrackedWidth, dpi, 96);
+      limits->ptMinTrackSize.y = MulDiv(kMinTrackedHeight, dpi, 96);
+      return 0;
+    }
   }
 
   return Win32Window::MessageHandler(hwnd, message, wparam, lparam);

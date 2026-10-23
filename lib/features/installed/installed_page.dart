@@ -7,6 +7,7 @@ import '../../design/components/ti_empty.dart';
 import '../../design/components/ti_page.dart';
 import '../../design/tokens.dart';
 import '../../shared/models.dart';
+import '../../shared/snapshot_store.dart';
 import 'uninstall_action.dart';
 
 class InstalledPage extends ConsumerStatefulWidget {
@@ -28,7 +29,9 @@ class _InstalledPageState extends ConsumerState<InstalledPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(installedAppsProvider);
-    final apps = state.value ?? const <InstalledApp>[];
+    // Once winget has answered, its rows are the list and the cache is spent.
+    final cached = state.hasValue ? null : ref.watch(installedSnapshotProvider);
+    final apps = state.value ?? cached?.apps ?? const <InstalledApp>[];
 
     return TiPage(
       key: const Key('page-installed'),
@@ -44,16 +47,22 @@ class _InstalledPageState extends ConsumerState<InstalledPage> {
             canRefresh: !state.isLoading,
           ),
           const SizedBox(height: TiSpace.gap),
-          Expanded(child: _status(state)),
+          if (cached != null) ...[
+            _StaleNotice(state: state, snapshot: cached),
+            const SizedBox(height: TiSpace.gap),
+          ],
+          Expanded(child: _body(state, cached)),
         ],
       ),
     );
   }
 
-  Widget _status(AsyncValue<List<InstalledApp>> state) {
-    // Stale rows stay on screen while a refresh runs; winget only answers with
-    // an error when there is nothing to keep showing.
+  Widget _body(
+    AsyncValue<List<InstalledApp>> state,
+    InstalledSnapshot? cached,
+  ) {
     if (state.hasValue) return _list(state.requireValue);
+    if (cached != null) return _list(cached.apps);
     if (state.hasError) {
       return TiEmpty(
         icon: Icons.error_outline,
@@ -103,6 +112,36 @@ class _InstalledPageState extends ConsumerState<InstalledPage> {
       itemCount: visible.length,
       separatorBuilder: (_, _) => const Divider(height: 1),
       itemBuilder: (context, index) => _AppRow(app: visible[index]),
+    );
+  }
+}
+
+/// Says where the rows on screen came from, so a cached list is never mistaken
+/// for an answer winget just gave.
+class _StaleNotice extends StatelessWidget {
+  const _StaleNotice({required this.state, required this.snapshot});
+
+  final AsyncValue<List<InstalledApp>> state;
+  final InstalledSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final failed = state.hasError;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          key: const Key('installed-stale'),
+          '先显示 ${snapshot.label} 的读取结果，'
+          '${failed ? '这次核对失败' : '正在重新核对'}',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: failed ? TiColors.danger : TiColors.muted,
+          ),
+        ),
+        if (failed) Text('${state.error}', style: theme.textTheme.bodySmall),
+      ],
     );
   }
 }

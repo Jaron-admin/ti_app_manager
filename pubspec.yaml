@@ -59,6 +59,20 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # TiType.family is Inter, so the three weights the theme asks for ship with
+  # the app; fonts/OFL-Inter.txt is their license. Chinese glyphs are not in
+  # Inter and keep falling back to the system CJK font.
+  # Source: https://github.com/rsms/inter/releases/tag/v4.1 (extras/ttf).
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: fonts/Inter-Regular.ttf
+          weight: 400
+        - asset: fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: fonts/Inter-SemiBold.ttf
+          weight: 600
+
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

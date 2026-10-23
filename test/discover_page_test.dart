@@ -7,6 +7,7 @@ import 'package:ti_app_manager/app/providers.dart';
 import 'package:ti_app_manager/shared/process_runner.dart';
 
 import 'support/fake_process_runner.dart';
+import 'support/fake_snapshot_store.dart';
 
 void main() {
   const found = CommandResult(exitCode: 0, stdoutText: searchTable);
@@ -26,7 +27,12 @@ void main() {
     });
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [processRunnerProvider.overrideWithValue(runner)],
+        overrides: [
+          processRunnerProvider.overrideWithValue(runner),
+          snapshotStoreProvider.overrideWithValue(
+            MemoryInstalledSnapshotStore(),
+          ),
+        ],
         child: const TiApp(),
       ),
     );

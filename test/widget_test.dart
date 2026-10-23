@@ -7,18 +7,23 @@ import 'package:ti_app_manager/design/tokens.dart';
 import 'package:ti_app_manager/shared/process_runner.dart';
 
 import 'support/fake_process_runner.dart';
+import 'support/fake_snapshot_store.dart';
 
 void main() {
-  Future<void> pumpApp(WidgetTester tester) async {
+  Future<void> pumpApp(WidgetTester tester, {ProcessRunner? runner}) async {
     await tester.binding.setSurfaceSize(const Size(1280, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           processRunnerProvider.overrideWithValue(
-            FakeProcessRunner(
-              const CommandResult(exitCode: 0, stdoutText: installedTable),
-            ),
+            runner ??
+                FakeProcessRunner(
+                  const CommandResult(exitCode: 0, stdoutText: installedTable),
+                ),
+          ),
+          snapshotStoreProvider.overrideWithValue(
+            MemoryInstalledSnapshotStore(),
           ),
         ],
         child: const TiApp(),
@@ -26,6 +31,48 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  testWidgets('only the section on screen gets read', (tester) async {
+    final runner = RoutingProcessRunner(const {
+      'list': CommandResult(exitCode: 0, stdoutText: installedTable),
+      'upgrade': CommandResult(exitCode: 0, stdoutText: upgradeTable),
+    });
+    await pumpApp(tester, runner: runner);
+
+    // winget needs ~20s per call, so an offscreen page must not queue a second
+    // one before the user has even asked for it.
+    expect(runner.calls.map((call) => call[1]), ['list']);
+
+    await tester.tap(find.byKey(const Key('nav-updates')));
+    await tester.pumpAndSettle();
+
+    expect(runner.calls.map((call) => call[1]), ['list', 'upgrade']);
+  });
+
+  testWidgets('a visited page keeps its state when coming back', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+
+    await tester.tap(find.byKey(const Key('nav-installed')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('installed-search')), 'blend');
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('nav-about')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('nav-installed')));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const Key('installed-search')))
+          .controller
+          ?.text,
+      'blend',
+    );
+    expect(find.text('Blender'), findsOneWidget);
+  });
 
   testWidgets('shell shows the four destinations', (tester) async {
     await pumpApp(tester);

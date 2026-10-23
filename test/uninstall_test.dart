@@ -8,6 +8,7 @@ import 'package:ti_app_manager/shared/bcu_locator.dart';
 import 'package:ti_app_manager/shared/process_runner.dart';
 
 import 'support/fake_process_runner.dart';
+import 'support/fake_snapshot_store.dart';
 
 void main() {
   const readTable = CommandResult(exitCode: 0, stdoutText: installedTable);
@@ -32,6 +33,9 @@ void main() {
       ProviderScope(
         overrides: [
           processRunnerProvider.overrideWithValue(runner),
+          snapshotStoreProvider.overrideWithValue(
+            MemoryInstalledSnapshotStore(),
+          ),
           bcuLocatorProvider.overrideWithValue(
             BcuLocator(
               environment: const {'ProgramFiles': r'C:\Program Files'},
@@ -194,12 +198,9 @@ void main() {
     await tester.tap(find.byKey(const Key('uninstall-cancel')));
     await tester.pumpAndSettle();
 
-    // Cancelling must not spawn anything; the two reads are the startup list
-    // and the offstage updates page.
-    expect(runner.calls.map((call) => call.take(2).join(' ')).toSet(), {
-      'winget list',
-      'winget upgrade',
-    });
+    // Cancelling must not spawn anything: the only call is the startup read
+    // for the page on screen.
+    expect(runner.calls.map((call) => call.take(2).join(' ')), ['winget list']);
   });
 
   testWidgets('reports the engine error instead of hiding it', (tester) async {

@@ -20,12 +20,10 @@ enum TiSection { installed, updates, discover, about }
 class _TiShellState extends State<TiShell> {
   TiSection _section = TiSection.installed;
 
-  static const _pages = <Widget>[
-    InstalledPage(),
-    UpdatesPage(),
-    DiscoverPage(),
-    AboutPage(),
-  ];
+  // Building a page also starts its winget reads, and each read costs ~20
+  // seconds. Unvisited sections stay out of the tree; visited ones stay alive
+  // so the search box and the checkboxes survive navigation.
+  final Set<TiSection> _visited = {TiSection.installed};
 
   static const _destinations = <_Destination>[
     _Destination(
@@ -54,6 +52,13 @@ class _TiShellState extends State<TiShell> {
     ),
   ];
 
+  static Widget _page(TiSection section) => switch (section) {
+    TiSection.installed => const InstalledPage(),
+    TiSection.updates => const UpdatesPage(),
+    TiSection.discover => const DiscoverPage(),
+    TiSection.about => const AboutPage(),
+  };
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,16 +68,20 @@ class _TiShellState extends State<TiShell> {
           Expanded(
             child: Stack(
               children: [
-                for (var i = 0; i < _pages.length; i++)
-                  Positioned.fill(
-                    child: Offstage(
-                      offstage: i != _section.index,
-                      child: TickerMode(
-                        enabled: i == _section.index,
-                        child: _pages[i],
+                for (final section in TiSection.values)
+                  if (_visited.contains(section))
+                    Positioned.fill(
+                      // Keyed, or mounting a section in the middle of the list
+                      // would rewire the page that lands on its index.
+                      key: ValueKey(section),
+                      child: Offstage(
+                        offstage: section != _section,
+                        child: TickerMode(
+                          enabled: section == _section,
+                          child: _page(section),
+                        ),
                       ),
                     ),
-                  ),
               ],
             ),
           ),
@@ -180,7 +189,10 @@ class _TiShellState extends State<TiShell> {
           child: InkWell(
             key: _navKey(destination.section),
             borderRadius: BorderRadius.circular(TiRadius.all),
-            onTap: () => setState(() => _section = destination.section),
+            onTap: () => setState(() {
+              _section = destination.section;
+              _visited.add(destination.section);
+            }),
             hoverColor: primary.withValues(alpha: 0.06),
             child: SizedBox(
               height: TiSpace.tapTarget,

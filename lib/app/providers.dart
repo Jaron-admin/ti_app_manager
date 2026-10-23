@@ -4,6 +4,7 @@ import '../shared/bcu_locator.dart';
 import '../shared/models.dart';
 import '../shared/process_runner.dart';
 import '../shared/registry_service.dart';
+import '../shared/snapshot_store.dart';
 import '../shared/winget_service.dart';
 
 final processRunnerProvider = Provider<ProcessRunner>(
@@ -18,8 +19,29 @@ final registryProvider = Provider<RegistryService>(
   (ref) => RegistryService(runner: ref.watch(processRunnerProvider)),
 );
 
+final snapshotStoreProvider = Provider<InstalledSnapshotStore>(
+  (ref) => FileInstalledSnapshotStore(
+    directory: FileInstalledSnapshotStore.defaultDirectory(),
+  ),
+);
+
+/// Read once per session, before winget has had time to answer.
+final installedSnapshotProvider = Provider<InstalledSnapshot?>((ref) {
+  final store = ref.watch(snapshotStoreProvider).read();
+  return store == null || store.apps.isEmpty ? null : store;
+});
+
 final installedAppsProvider = FutureProvider<List<InstalledApp>>(
-  (ref) => ref.watch(wingetProvider).installedApps(),
+  (ref) async {
+    final apps = await ref.watch(wingetProvider).installedApps();
+    ref
+        .watch(snapshotStoreProvider)
+        .write(InstalledSnapshot(capturedAt: DateTime.now(), apps: apps));
+    // Keep the cached value honest, so a later failed read falls back to these
+    // rows rather than to the ones from before the last change.
+    ref.invalidate(installedSnapshotProvider);
+    return apps;
+  },
   // A winget failure is deterministic, so never respawn the process on a timer.
   retry: (_, _) => null,
 );
