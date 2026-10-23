@@ -1,4 +1,6 @@
 # toolchain / build
+.superpowers/
+engine/
 build/
 .dart_tool/
 .gradle/

@@ -1,0 +1,68 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:ti_app_manager/app/app.dart';
+import 'package:ti_app_manager/design/tokens.dart';
+
+void main() {
+  Future<void> pumpApp(WidgetTester tester) async {
+    await tester.binding.setSurfaceSize(const Size(1280, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(const ProviderScope(child: TiApp()));
+  }
+
+  testWidgets('shell shows the four destinations', (tester) async {
+    await pumpApp(tester);
+
+    expect(find.byKey(const Key('nav-installed')), findsOneWidget);
+    expect(find.byKey(const Key('nav-updates')), findsOneWidget);
+    expect(find.byKey(const Key('nav-discover')), findsOneWidget);
+    expect(find.byKey(const Key('nav-about')), findsOneWidget);
+    expect(find.byKey(const Key('page-installed')), findsOneWidget);
+    final emptyRect = tester.getRect(find.text('还没有软件清单'));
+    expect(emptyRect.height, greaterThan(0));
+    expect(emptyRect.top, greaterThan(0));
+    expect(find.text('Ti 软件管家'), findsWidgets);
+  });
+
+  testWidgets('tapping a destination switches the page', (tester) async {
+    await pumpApp(tester);
+
+    await tester.tap(find.byKey(const Key('nav-discover')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('page-discover')), findsOneWidget);
+    expect(find.byKey(const Key('page-installed')), findsNothing);
+  });
+
+  testWidgets('system dark mode selects the dark Ti palette', (tester) async {
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+    addTearDown(
+      tester.platformDispatcher.clearPlatformBrightnessTestValue,
+    );
+
+    await pumpApp(tester);
+
+    final context = tester.element(
+      find.byKey(const Key('page-installed')),
+    );
+    expect(Theme.of(context).colorScheme.primary, TiColors.primaryDark);
+    expect(Theme.of(context).scaffoldBackgroundColor, TiColors.paperDark);
+  });
+
+  testWidgets('shell stays usable at 200% text scale', (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(
+      tester.platformDispatcher.clearTextScaleFactorTestValue,
+    );
+
+    await pumpApp(tester);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.byKey(const Key('nav-about')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('page-about')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+}
